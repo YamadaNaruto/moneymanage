@@ -1,4 +1,6 @@
-import { use, useState } from "react"
+import { useState } from "react"
+import {auth} from "../firebase"
+import { useAuthState } from "react-firebase-hooks/auth"
 import Select from "../components/Select/Select"
 import { loanorsub, ROUTES } from "../const"
 import Input from "../components/inputform/input"
@@ -15,12 +17,13 @@ export default function Loan() {
 
   const [year, setYear] = useState("")
   const [month, setMonth] = useState("")
-
+  const [user] = useAuthState(auth)
+  const user_id = user.uid
   const handleSubmit = async () => {
     await fetch("http://localhost:3000/api/loan",{
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({type,name,amount,year,month})
+      body: JSON.stringify({type,name,amount,year,month,user_id})
     })
     setAmount("")
     setName("")

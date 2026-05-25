@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react"
 import { paidjunre, ROUTES } from "../const"
 import { data, useNavigate } from "react-router-dom"
+import {auth} from "../firebase"
+import { useAuthState } from "react-firebase-hooks/auth"
 import Button from "../components/Button/Button"
 import Select from "../components/Select/Select"
 
   const today = new Date
   const years = Array.from({length:5},(_, i) =>  today.getFullYear()-i)
   const months = Array.from({length: 12},(_, i)=> i + 1)
-export function usePaidSummary(year,month,junre) {
 
+export function usePaidSummary(year,month,junre) {
+  const [user] = useAuthState(auth)
   const [expenses, setExpenses] = useState([])
   const [loans, setLoans] = useState([])
   useEffect(() => {
-    fetch(`http://localhost:3000/api/paidhis?year=${year}&month=${month}&junre=${junre}`)
+    if (!user) return
+    fetch(`http://localhost:3000/api/paidhis?year=${year}&month=${month}&junre=${junre}&user_id=${user.uid}`)
     .then(res => res.json())
     .then(data => {
       setExpenses(data.expenses)
@@ -20,7 +24,7 @@ export function usePaidSummary(year,month,junre) {
     })
 
 
-  },[year,month,junre])
+  },[year,month,junre,user])
   const expensesTotal = expenses.reduce((sum,item) => sum + item.amount,0)
   const loansTotal = loans.reduce((sum, item) => sum + item.amount, 0)
   const total = expensesTotal + loansTotal

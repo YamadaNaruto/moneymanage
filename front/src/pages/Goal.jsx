@@ -2,6 +2,8 @@ import { useState } from "react"
 import Input from "../components/inputform/input"
 import Select from "../components/Select/Select"
 import Button from "../components/Button/Button"
+import {auth} from "../firebase"
+import { useAuthState } from "react-firebase-hooks/auth"
 import { goalType, goalTypeMap, ROUTES } from "../const"
 import { useNavigate } from "react-router-dom"
 
@@ -13,12 +15,14 @@ export default function Goal() {
   const months = Array.from({length: 12},(_, i)=> i + 1)
   const [year, setYear] = useState("")
   const [month, setMonth] = useState("")
+  const [user] = useAuthState(auth)
+  const user_id = user.uid
 
   const handleSubmit = async () => {
     await fetch("http://localhost:3000/api/goal", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({type: goalTypeMap[type], amount, year, month})
+      body: JSON.stringify({type: goalTypeMap[type], amount, year, month,user_id})
     })
     setAmount("")
     setType("")
