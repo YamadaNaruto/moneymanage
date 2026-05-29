@@ -1,0 +1,30 @@
+services:
+  frontend:
+    build:
+      context: ./front
+    ports: [
+      "5173:5173"
+    ]
+  backend:
+    build:
+      context: ./backend
+    ports: ["3000:3000"]  
+    environment:
+      DATABASE_PASS: hogehoge2000
+    depends_on: 
+      db:
+        condition: service_healthy  
+  db:   
+    image: mysql:8.0  
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASS}
+      MYSQL_DATABASE: managemoney
+    healthcheck:   # ← これが必要
+      test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-p${DATABASE_PASS}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5  
+    volumes:
+      - mysql_data:/var/lib/mysql  
+volumes:
+  mysql_data:

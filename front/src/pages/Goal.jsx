@@ -2,27 +2,34 @@ import { useState } from "react"
 import Input from "../components/inputform/input"
 import Select from "../components/Select/Select"
 import Button from "../components/Button/Button"
-import {auth} from "../firebase"
+import { auth } from "../firebase"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { goalType, goalTypeMap, ROUTES } from "../const"
 import { useNavigate } from "react-router-dom"
 
+const years = Array.from({ length: 35 }, (_, i) => i + 1)
+const months = Array.from({ length: 12 }, (_, i) => i + 1)
+
 export default function Goal() {
   const navigate = useNavigate()
   const [amount, setAmount] = useState("")
+  const [amountError, setAmountError] = useState("")
   const [type, setType] = useState("")
-  const years = Array.from({length: 35},(_, i) => i + 1)
-  const months = Array.from({length: 12},(_, i)=> i + 1)
   const [year, setYear] = useState("")
   const [month, setMonth] = useState("")
   const [user] = useAuthState(auth)
   const user_id = user.uid
 
   const handleSubmit = async () => {
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+      setAmountError("正の数値を入力してください")
+      return
+    }
+    setAmountError("")
     await fetch("http://localhost:3000/api/goal", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({type: goalTypeMap[type], amount, year, month,user_id})
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: goalTypeMap[type], amount, year, month, user_id }),
     })
     setAmount("")
     setType("")
@@ -32,32 +39,72 @@ export default function Goal() {
 
   let form = null
   if (type === "目標貯金") {
-    form = 
-    <>
-    <p>残り年数</p>
-    <select value={year} onChange={(e) => setYear(e.target.value)}>
-      <option value="">年を選択</option>
-      {years.map(y => <option key={y} value={y}>{y}年</option>)}
-    </select>
-
-    <select value={month} onChange={(e) => setMonth(e.target.value)}>
-      <option value="">ヶ月を選択</option>
-      {months.map(m => <option key={m} value={m}>{m}ヶ月</option>)}
-    </select>
-    <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="目標金額を入力" />
-    </>
+    form = (
+      <>
+        <div className="form-group">
+          <label className="form-label">目標金額（円）</label>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="例: 1000000" error={amountError} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">達成期間</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <Select
+              option={years.map(y => ({ value: y, label: `${y}年` }))}
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="年を選択"
+            />
+            <Select
+              option={months.map(m => ({ value: m, label: `${m}ヶ月` }))}
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+              placeholder="ヶ月を選択"
+            />
+          </div>
+        </div>
+      </>
+    )
   } else if (type === "現在の貯金") {
-    form = <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="現在の貯金額を入力" />
-  }else if (type === "月の平均収入") {
-    form = <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="平均収入を入力" />
+    form = (
+      <div className="form-group">
+        <label className="form-label">現在の貯金額（円）</label>
+        <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="例: 500000" error={amountError} />
+      </div>
+    )
+  } else if (type === "月の平均収入") {
+    form = (
+      <div className="form-group">
+        <label className="form-label">月の平均収入（円）</label>
+        <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="例: 250000" error={amountError} />
+      </div>
+    )
   }
 
   return (
-    <>
-      <Select option={goalType} value={type} onChange={(e) => setType(e.target.value)} />
-      {form}
-      {type && <Button onClick={handleSubmit}>登録</Button>}
-      <Button onClick={() =>navigate(ROUTES.HOME)}>ホーム</Button>
-    </>
+    <div className="page">
+      <header className="page-header">
+        <button className="icon-btn" onClick={() => navigate(ROUTES.HOME)}>← 戻る</button>
+        <h1 className="page-title">目標設定</h1>
+        <div style={{ width: 64 }} />
+      </header>
+
+      <div className="page-content">
+        <div className="card">
+          <div className="form-stack">
+            <div className="form-group">
+              <label className="form-label">設定の種類</label>
+              <Select
+                option={goalType}
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                placeholder="選択してください"
+              />
+            </div>
+            {form}
+            {type && <Button onClick={handleSubmit}>登録する</Button>}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

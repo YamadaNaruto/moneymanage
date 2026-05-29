@@ -1,13 +1,15 @@
+import styles from "./Select.module.css"
 
-export default function Select({ value,onChange,option,placeholder}) {
-    const genres = option
+export default function Select({ value, onChange, option, placeholder }) {
   return (
-    <select value={value} onChange={onChange}>
-        <option value="">{placeholder}</option>
-        {genres.map((g)=> (
-            <option key={g} value={g}>{g}</option>
-        ))}
-
+    <select className={styles.select} value={value} onChange={onChange}>
+      {placeholder !== undefined && <option value="">{placeholder}</option>}
+      {option.map((g) => {
+        if (typeof g === "object" && g !== null) {
+          return <option key={g.value} value={g.value}>{g.label}</option>
+        }
+        return <option key={g} value={g}>{g}</option>
+      })}
     </select>
   )
 }

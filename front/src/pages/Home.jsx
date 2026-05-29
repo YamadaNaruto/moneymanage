@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom"
-import Button from "../components/Button/Button"
-import {ROUTES} from "../const"
+import { ROUTES } from "../const"
 import { useState, useEffect } from "react"
 import { auth, provider } from "../firebase"
 import { signInWithPopup } from "firebase/auth"
-import {useAuthState} from "react-firebase-hooks/auth"
+import { useAuthState } from "react-firebase-hooks/auth"
+import Button from "../components/Button/Button"
 
 export default function Home() {
-  const [user] = useAuthState(auth);
+  const [user] = useAuthState(auth)
   const [savings, setSavings] = useState([])
   const navigate = useNavigate()
 
@@ -18,52 +18,71 @@ export default function Home() {
       .then(data => setSavings(data))
   }, [user])
 
-  if (!user) return <SignInButton/>
+  if (!user) return <SignInPage />
 
   const current = savings.find(item => item.type === "current")
+  const formatted = current?.amount
+    ? Number(current.amount).toLocaleString("ja-JP")
+    : "---"
 
   return (
-    <>
-      <UserInfo/>
-      <SignOutButton/>
-      <h1>お金管理</h1>
-      <p>現在の貯金:{current?.amount}円</p>
-      <Button onClick={() => navigate(ROUTES.PAID)}>支出登録</Button>
-      <Button onClick={() => navigate(ROUTES.LOAN)}>ローン、サブスク登録</Button>
-      <Button onClick={() => navigate(ROUTES.PAIDHIS)}>支出履歴</Button>
-      <Button onClick={() => navigate(ROUTES.GOAL)}>目標貯金登録</Button>
-    </>
+    <div className="page">
+      <header className="page-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img className="user-avatar" src={auth.currentUser.photoURL} alt="" />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>{auth.currentUser.displayName}</span>
+        </div>
+        <button className="icon-btn" onClick={() => auth.signOut()}>
+          サインアウト
+        </button>
+      </header>
+
+      <div className="page-content">
+        <div className="card" style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)", color: "#fff" }}>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 6 }}>現在の貯金</p>
+          <p style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.5px" }}>
+            ¥{formatted}
+          </p>
+        </div>
+
+        <div className="nav-grid">
+          <button className="nav-card" onClick={() => navigate(ROUTES.PAID)}>
+            <div className="nav-card-icon" style={{ background: "#fee2e2", color: "#dc2626" }}>支</div>
+            <span className="nav-card-label">支出登録</span>
+          </button>
+          <button className="nav-card" onClick={() => navigate(ROUTES.LOAN)}>
+            <div className="nav-card-icon" style={{ background: "#ede9fe", color: "#7c3aed" }}>ロ</div>
+            <span className="nav-card-label">ローン・サブスク</span>
+          </button>
+          <button className="nav-card" onClick={() => navigate(ROUTES.PAIDHIS)}>
+            <div className="nav-card-icon" style={{ background: "#dbeafe", color: "#2563eb" }}>履</div>
+            <span className="nav-card-label">支出履歴</span>
+          </button>
+          <button className="nav-card" onClick={() => navigate(ROUTES.GOAL)}>
+            <div className="nav-card-icon" style={{ background: "#d1fae5", color: "#059669" }}>目</div>
+            <span className="nav-card-label">目標設定</span>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
-function SignInButton() {
+function SignInPage() {
   const navigate = useNavigate()
-  const signInwithGoogle = async() => {
-     const result = await signInWithPopup(auth, provider)
-     if(result._tokenResponse.isNewUser){
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, provider)
+    if (result._tokenResponse.isNewUser) {
       navigate(ROUTES.FIRST)
-     }
-  };
+    }
+  }
   return (
-    <button onClick={signInwithGoogle}>
-      <p>Googleでサインインする</p>
-    </button>
-  )
-}
-
-function SignOutButton() {
-  return (
-    <button onClick={() => auth.signOut()}>
-      <p>サインアウト</p>
-    </button>
-  )
-}
-
-function UserInfo() {
-  return (
-    <div className="UserInfo">
-      <img src={auth.currentUser.photoURL} alt=""/>
-      <p>{auth.currentUser.displayName}</p>
+    <div className="signin-page">
+      <h1 className="signin-app-title">お金管理</h1>
+      <p className="signin-subtitle">支出を記録して<br />目標貯金を達成しよう</p>
+      <div style={{ width: "100%", marginTop: 8 }}>
+        <Button onClick={signInWithGoogle}>Googleでサインイン</Button>
+      </div>
     </div>
   )
 }

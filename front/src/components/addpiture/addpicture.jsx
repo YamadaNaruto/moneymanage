@@ -1,13 +1,24 @@
+import "./addpicture.css"
 
 export default function Addpicture({ file, onChange }) {
-
   return (
-    <div>
-      <label>
-          画像をアップロード
-          <input type="file" onChange={(e) => onChange(e.target.files[0])} />
+    <div className="upload-area">
+      <label className="upload-label">
+        <div className="upload-icon">+</div>
+        <span className="upload-text">写真を追加</span>
+        <span className="upload-hint">レシート・領収書など（任意）</span>
+        <input
+          className="upload-input"
+          type="file"
+          accept="image/*"
+          onChange={(e) => onChange(e.target.files[0])}
+        />
       </label>
-      {file && <p>選択中: {file.name}</p>}
+      {file && (
+        <div className="file-selected">
+          {file.name}
+        </div>
+      )}
     </div>
   )
 }
